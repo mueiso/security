@@ -1,0 +1,84 @@
+### 환경 변수
+@host = http://localhost
+@port = 8080
+@baseUrl = {{host}}:{{port}}
+
+### 0. 로그인하여 토큰 얻기 (테스트를 위한 사전 준비)
+# 이 요청은 API 테스트를 위한 토큰을 얻기 위한 사전 단계입니다.
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+    client.global.set("token", response.body.token);
+%}
+
+### 1. 현재 인증된 사용자 정보 조회
+# 이 요청은 현재 로그인한 사용자의 정보를 조회합니다.
+GET {{baseUrl}}/api/me
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Status code is 200", function() {
+        client.assert(response.status === 200, "응답 상태가 200이어야 합니다.");
+    });
+    client.test("Username exists", function() {
+        client.assert(response.body.username !== undefined, "사용자명이 응답에 포함되어야 합니다.");
+    });
+    client.test("Authorities exists", function() {
+        client.assert(response.body.authorities !== undefined, "권한 정보가 응답에 포함되어야 합니다.");
+    });
+%}
+
+### 2. 특정 사용자 정보 조회 (admin 사용자)
+# 이 요청은 username을 사용하여 특정 사용자의 정보를 조회합니다.
+GET {{baseUrl}}/api/users/admin
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Status code is 200", function() {
+        client.assert(response.status === 200, "응답 상태가 200이어야 합니다.");
+    });
+    client.test("Username is admin", function() {
+        client.assert(response.body.username === "admin", "응답의 사용자명이 admin이어야 합니다.");
+    });
+%}
+
+### 3. 특정 사용자 정보 조회 (user 사용자)
+# 이 요청은 username을 사용하여 일반 사용자의 정보를 조회합니다.
+GET {{baseUrl}}/api/users/user
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Status code is 200", function() {
+        client.assert(response.status === 200, "응답 상태가 200이어야 합니다.");
+    });
+    client.test("Username is user", function() {
+        client.assert(response.body.username === "user", "응답의 사용자명이 user여야 합니다.");
+    });
+%}
+
+### 4. 존재하지 않는 사용자 정보 조회 (실패 케이스)
+# 이 요청은 존재하지 않는 사용자 정보를 조회합니다. 404 상태 코드가 예상됩니다.
+GET {{baseUrl}}/api/users/nonexistent
+Authorization: Bearer {{token}}
+
+> {%
+    client.test("Status code is 404", function() {
+        client.assert(response.status === 404, "존재하지 않는 사용자 조회 시 404 상태 코드가 반환되어야 합니다.");
+    });
+%}
+
+### 5. 인증 없이 사용자 정보 조회 시도 (실패 케이스)
+# 이 요청은 토큰 없이 사용자 정보를 조회합니다. 401 상태 코드가 예상됩니다.
+GET {{baseUrl}}/api/users/admin
+
+> {%
+    client.test("Status code is 401", function() {
+        client.assert(response.status === 401, "인증 없이 사용자 정보 조회 시 401 상태 코드가 반환되어야 합니다.");
+    });
+%}

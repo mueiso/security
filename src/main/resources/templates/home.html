@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Spring Security Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2>Spring Security Demo</h2>
+            </div>
+            <div class="card-body">
+                <h3>Welcome to the Spring Security Demo</h3>
+                <p>This application demonstrates basic Spring Security features:</p>
+                <ul>
+                    <li>User authentication with form login</li>
+                    <li>Role-based authorization</li>
+                    <li>Custom user details service</li>
+                    <li>Password encryption</li>
+                </ul>
+                <div class="mt-4">
+                    <a th:href="@{/login}" class="btn btn-primary">Login</a>
+                    <a th:href="@{/dashboard}" class="btn btn-success ms-2">Dashboard (Protected)</a>
+                    <a th:href="@{/admin}" class="btn btn-danger ms-2">Admin Panel (Admin Only)</a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <p>Default Users:</p>
+                <ul>
+                    <li>Username: admin / Password: admin (ROLE_ADMIN)</li>
+                    <li>Username: user / Password: user (ROLE_USER)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

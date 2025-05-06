@@ -1,0 +1,98 @@
+### 환경 변수
+@host = http://localhost
+@port = 8080
+@baseUrl = {{host}}:{{port}}
+
+### 0-A. 관리자로 로그인하여 토큰 얻기 (테스트를 위한 사전 준비)
+# 이 요청은 관리자 권한 API 테스트를 위한 토큰을 얻기 위한 사전 단계입니다.
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+> {%
+    client.global.set("adminToken", response.body.token);
+%}
+
+### 0-B. 일반 사용자로 로그인하여 토큰 얻기 (권한 부족 테스트용)
+# 이 요청은 일반 사용자 토큰을 얻어 관리자 API 접근 실패 테스트를 위한 사전 단계입니다.
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "user"
+}
+
+> {%
+    client.global.set("userToken", response.body.token);
+%}
+
+### 1. 모든 사용자 목록 조회 (관리자 권한 필요)
+# 이 요청은 관리자 토큰을 사용하여 모든 사용자 목록을 조회합니다.
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{adminToken}}
+
+> {%
+    client.test("Status code is 200", function() {
+        client.assert(response.status === 200, "응답 상태가 200이어야 합니다.");
+    });
+    client.test("Response is an array", function() {
+        client.assert(Array.isArray(response.body), "응답이 배열이어야 합니다.");
+    });
+    client.test("Users exist in response", function() {
+        client.assert(response.body.length > 0, "응답에 사용자가 포함되어야 합니다.");
+    });
+%}
+
+### 2. 관리자 대시보드 데이터 조회 (관리자 권한 필요)
+# 이 요청은 관리자 토큰을 사용하여 대시보드 데이터를 조회합니다.
+GET {{baseUrl}}/api/admin/dashboard
+Authorization: Bearer {{adminToken}}
+
+> {%
+    client.test("Status code is 200", function() {
+        client.assert(response.status === 200, "응답 상태가 200이어야 합니다.");
+    });
+    client.test("Total users count exists", function() {
+        client.assert(response.body.totalUsers !== undefined, "총 사용자 수가 응답에 포함되어야 합니다.");
+    });
+    client.test("Message exists", function() {
+        client.assert(response.body.message !== undefined, "메시지가 응답에 포함되어야 합니다.");
+    });
+%}
+
+### 3. 일반 사용자로 사용자 목록 조회 시도 (권한 부족 - 실패 케이스)
+# 이 요청은 일반 사용자 토큰으로 관리자 권한이 필요한 API에 접근을 시도합니다. 403 상태 코드가 예상됩니다.
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{userToken}}
+
+> {%
+    client.test("Status code is 403", function() {
+        client.assert(response.status === 403, "관리자가 아닌 사용자가 접근 시 403 상태 코드가 반환되어야 합니다.");
+    });
+%}
+
+### 4. 일반 사용자로 관리자 대시보드 접근 시도 (권한 부족 - 실패 케이스)
+# 이 요청은 일반 사용자 토큰으로 관리자 대시보드에 접근을 시도합니다. 403 상태 코드가 예상됩니다.
+GET {{baseUrl}}/api/admin/dashboard
+Authorization: Bearer {{userToken}}
+
+> {%
+    client.test("Status code is 403", function() {
+        client.assert(response.status === 403, "관리자가 아닌 사용자가 접근 시 403 상태 코드가 반환되어야 합니다.");
+    });
+%}
+
+### 5. 토큰 없이 관리자 API 접근 시도 (인증 실패 - 실패 케이스)
+# 이 요청은 토큰 없이 관리자 API에 접근을 시도합니다. 401 상태 코드가 예상됩니다.
+GET {{baseUrl}}/api/admin/dashboard
+
+> {%
+    client.test("Status code is 401", function() {
+        client.assert(response.status === 401, "인증 없이 접근 시 401 상태 코드가 반환되어야 합니다.");
+    });
+%}
