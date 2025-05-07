@@ -1,5 +1,6 @@
 package com.study.security.controller;
 
+import com.study.security.dto.LoginRequest;
 import com.study.security.jwt.JwtTokenProvider;
 import com.study.security.entity.User;
 import com.study.security.service.UserService;
@@ -74,26 +75,5 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
-    // 로그인 요청 DTO
-    public static class LoginRequest {
-        private String username;
-        private String password;
 
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-    }
 }
