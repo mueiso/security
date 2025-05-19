@@ -29,7 +29,8 @@ public class User {
 
     @Column(nullable = false)
     private String email;
-    
+
+    // FetchType 즉시로딩으로 한 이유 공부하기
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
